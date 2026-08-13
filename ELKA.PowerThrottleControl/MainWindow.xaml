@@ -1,0 +1,395 @@
+<Window x:Class="ELKA.PowerThrottleControl.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ELKA Power Throttle Control"
+        Width="1040" Height="700" MinWidth="820" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <Window.Resources>
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#11151B"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#181E27"/>
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="#202834"/>
+        <SolidColorBrush x:Key="HeaderBrush" Color="#212A36"/>
+        <SolidColorBrush x:Key="InputBrush" Color="#202834"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#AAB4C2"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#303B49"/>
+        <SolidColorBrush x:Key="GridLineBrush" Color="#2B3542"/>
+        <SolidColorBrush x:Key="RedRowBrush" Color="#3B2025"/>
+        <SolidColorBrush x:Key="GreenRowBrush" Color="#17382C"/>
+        <SolidColorBrush x:Key="SelectionBrush" Color="#4C82D4"/>
+        <SolidColorBrush x:Key="ScrollTrackBrush" Color="#151B23"/>
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#465467"/>
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#64748A"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="11,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource InputBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource HeaderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ThemeButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource HeaderBrush}"/>
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource SelectionBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.78"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="MinWidth" Value="178"/>
+            <Setter Property="HasDropShadow" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="11,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="ItemChrome" Margin="1" Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}" CornerRadius="7">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse x:Name="SelectedDot" Width="7" Height="7"
+                                         Fill="{DynamicResource SelectionBrush}" Opacity="0"/>
+                                <ContentPresenter Grid.Column="1" ContentSource="Header"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemChrome" Property="Background"
+                                        Value="{DynamicResource HeaderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SelectedDot" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ItemChrome" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Separator">
+            <Setter Property="Margin" Value="10,4"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Background="{DynamicResource GridLineBrush}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PillThumbStyle" TargetType="Thumb">
+            <Setter Property="Background" Value="{DynamicResource ScrollThumbBrush}"/>
+            <Setter Property="Margin" Value="3,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbChrome" Background="{TemplateBinding Background}"
+                                CornerRadius="5"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbChrome" Property="Background"
+                                        Value="{DynamicResource ScrollThumbHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbChrome" Property="Background"
+                                        Value="{DynamicResource SelectionBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollTrackBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <Track x:Name="PART_Track" Orientation="Vertical"
+                                   IsDirectionReversed="True" Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                  Background="Transparent" BorderThickness="0"
+                                                  Focusable="False" Opacity="0"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource PillThumbStyle}"/>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                  Background="Transparent" BorderThickness="0"
+                                                  Focusable="False" Opacity="0"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="Height" Value="12"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Track x:Name="PART_Track" Orientation="Horizontal"
+                                           IsDirectionReversed="False" Focusable="False">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageLeftCommand"
+                                                          Background="Transparent" BorderThickness="0"
+                                                          Focusable="False" Opacity="0"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource PillThumbStyle}" Margin="2,3"/>
+                                        </Track.Thumb>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="ScrollBar.PageRightCommand"
+                                                          Background="Transparent" BorderThickness="0"
+                                                          Focusable="False" Opacity="0"/>
+                                        </Track.IncreaseRepeatButton>
+                                    </Track>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontSize="27" FontWeight="Bold" Foreground="#FFF28C28" Text="ELKA"/>
+                    <TextBlock Margin="8,0,0,0" FontSize="27" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryTextBrush}" Text="Power Throttle Control"/>
+                </StackPanel>
+                <TextBlock Margin="0,5,0,0" FontSize="14"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           Text="Choose installed applications and control their Windows power throttling setting."/>
+            </StackPanel>
+            <Button x:Name="ThemeButton" Grid.Column="1" Margin="12,0,0,0" Style="{StaticResource ThemeButtonStyle}"
+                    VerticalAlignment="Top" Click="ThemeButton_Click"
+                    Background="{DynamicResource SurfaceAltBrush}"
+                    Foreground="{DynamicResource PrimaryTextBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <Button.ContextMenu>
+                    <ContextMenu x:Name="ThemeContextMenu">
+                        <MenuItem Header="Light" Tag="Light" Click="ThemeMenuItem_Click"/>
+                        <MenuItem Header="Dark" Tag="Dark" Click="ThemeMenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem Header="System" Tag="System" Click="ThemeMenuItem_Click"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Margin="0,0,8,0" Text="◐"/>
+                    <TextBlock x:Name="ThemeButtonText" Text="Theme: Dark"/>
+                    <TextBlock Margin="9,0,0,0" Text="▾"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <WrapPanel Grid.Row="1" Margin="0,0,0,14">
+            <Button x:Name="SearchApplicationsButton" Click="SearchApplications_Click"
+                    Background="#FF2D68C4" BorderBrush="#FF4B83D5"
+                    Content="Search all applications"/>
+            <Button x:Name="DisableButton" Click="DisablePowerThrottling_Click"
+                    Background="#FF267A46" BorderBrush="#FF3F9961"
+                    Content="Disable power throttling"/>
+            <Button x:Name="EnableButton" Click="EnablePowerThrottling_Click"
+                    Background="#FFB83D48" BorderBrush="#FFD15C66"
+                    Content="Enable power throttling"/>
+            <Button x:Name="ListButton" Click="ListPowerThrottling_Click"
+                    Background="#FF535D6B" BorderBrush="#FF697585"
+                    Content="List power throttling"/>
+        </WrapPanel>
+
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="FilterBox" Grid.Column="0" TextChanged="FilterBox_TextChanged"
+                     ToolTip="Filter the discovered application list"
+                     AutomationProperties.Name="Filter applications"/>
+            <TextBlock x:Name="CountText" Grid.Column="1" Margin="14,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource SecondaryTextBrush}"/>
+        </Grid>
+
+        <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6">
+            <DataGrid x:Name="ApplicationsGrid" ItemsSource="{Binding Applications}"
+                      Background="{DynamicResource SurfaceBrush}"
+                      Foreground="{DynamicResource PrimaryTextBrush}"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                      CanUserReorderColumns="False" HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="{DynamicResource GridLineBrush}"
+                      BorderThickness="0" RowHeaderWidth="0" RowHeight="50"
+                      SelectionMode="Extended" SelectionUnit="FullRow">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="{DynamicResource RedRowBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsThrottlingDisabled}" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource GreenRowBrush}"/>
+                            </DataTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource SelectionBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Width="48"
+                        Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <DataGridCheckBoxColumn.Header>
+                            <CheckBox x:Name="SelectAllCheckBox" Click="SelectAllCheckBox_Click"
+                                      ToolTip="Select or clear all visible applications"/>
+                        </DataGridCheckBoxColumn.Header>
+                    </DataGridCheckBoxColumn>
+                    <DataGridTextColumn Header="Application" Width="2*" IsReadOnly="True"
+                                        Binding="{Binding DisplayName}"/>
+                    <DataGridTextColumn Header="Executable path" Width="4*" IsReadOnly="True"
+                                        Binding="{Binding ExecutablePath}"/>
+                    <DataGridTextColumn Header="Power throttling" Width="170" IsReadOnly="True"
+                                        Binding="{Binding StatusText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
+                       Text="Select Search all applications to begin."/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Border Width="13" Height="13" Margin="12,0,5,0" CornerRadius="3"
+                        Background="{DynamicResource GreenRowBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"/>
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}" Text="Off"/>
+                <Border Width="13" Height="13" Margin="12,0,5,0" CornerRadius="3"
+                        Background="{DynamicResource RedRowBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"/>
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}" Text="On/default"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
+
+
+
+
+

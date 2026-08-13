@@ -1,0 +1,63 @@
+name: Build and release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress -y
+
+      - name: Resolve version
+        id: version
+        shell: powershell
+        run: |
+          $version = if ("${{ github.ref_type }}" -eq "tag") {
+            "${{ github.ref_name }}".TrimStart("v")
+          } else {
+            "1.0.0"
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Build app and installer
+        shell: powershell
+        run: .\scripts\Build-Release.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ELKA-Power-Throttle-Control
+          path: artifacts/installer/*
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $files = Get-ChildItem artifacts\installer -File | ForEach-Object FullName
+          if (gh release view $tag 2>$null) {
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --generate-notes --title "ELKA Power Throttle Control $tag"
+          }
+
