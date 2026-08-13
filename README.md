@@ -1,6 +1,6 @@
 # ELKA Power Throttle Control
 
-![ELKA Power Throttle Control icon](ELKA.PowerThrottleControl/Assets/ELKA.PowerThrottleControl.png)
+![ELKA Power Throttle Control](docs/assets/github-social-preview.jpg)
 
 A focused Windows desktop application for managing per-application power throttling with Windows' built-in `powercfg` commands.
 
@@ -61,4 +61,5 @@ Application state and theme preferences are stored per user under:
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
 
