@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.0.0",
+    [string]$Version = "1.1.0",
     [ValidateSet("Release", "Debug")]
     [string]$Configuration = "Release"
 )
@@ -47,5 +47,3 @@ $checksumLines = foreach ($file in $releaseFiles) {
 Set-Content -LiteralPath $checksumPath -Value $checksumLines -Encoding ascii
 
 Get-ChildItem -LiteralPath $installerDirectory -File | Select-Object Name, Length, LastWriteTime
-
-

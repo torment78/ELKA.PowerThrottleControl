@@ -5,7 +5,7 @@
 #define MyInstallFolderName "ELKA Power Throttle Control"
 
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.1.0"
 #endif
 
 #ifndef SourcePublishDir
@@ -75,4 +75,3 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch ELKA Power Throttle Cont
 
 [UninstallDelete]
 Type: dirifempty; Name: "{app}"
-

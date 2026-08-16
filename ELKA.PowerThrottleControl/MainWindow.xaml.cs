@@ -249,8 +249,20 @@ public partial class MainWindow : Window
         var visible = _applicationsView?.Cast<object>().Count() ?? 0;
         CountText.Text = $"{visible:N0} shown";
     }
-}
 
+    private void PowerNav_Click(object sender, RoutedEventArgs e)
+    {
+        NetworkWorkspace.Visibility = Visibility.Collapsed;
+        PowerNavButton.Background = (System.Windows.Media.Brush)Resources["SelectionBrush"];
+        NetworkNavButton.Background = (System.Windows.Media.Brush)Resources["SurfaceAltBrush"];
+        StatusText.Visibility = Visibility.Visible;
+    }
 
-
-
+    private async void NetworkNav_Click(object sender, RoutedEventArgs e)
+    {
+        NetworkWorkspace.Visibility = Visibility.Visible;
+        PowerNavButton.Background = (System.Windows.Media.Brush)Resources["SurfaceAltBrush"];
+        NetworkNavButton.Background = (System.Windows.Media.Brush)Resources["SelectionBrush"];
+        StatusText.Visibility = Visibility.Collapsed;
+        await NetworkWorkspace.EnsureLoadedAsync();
+    }}
