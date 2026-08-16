@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.1.0",
+    [string]$Version = "1.2.0",
     [ValidateSet("Release", "Debug")]
     [string]$Configuration = "Release"
 )
@@ -38,7 +38,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $releaseFiles = Get-ChildItem -LiteralPath $installerDirectory -File |
-    Where-Object Extension -In ".exe", ".zip"
+    Where-Object { $_.Extension -in ".exe", ".zip" -and $_.Name -like "*$Version*" }
 $checksumPath = Join-Path $installerDirectory "SHA256SUMS.txt"
 $checksumLines = foreach ($file in $releaseFiles) {
     $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()

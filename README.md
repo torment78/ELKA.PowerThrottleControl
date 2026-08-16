@@ -17,9 +17,11 @@ The installer is self-contained for 64-bit Windows; users do not need to install
 - Disable or enable power throttling through a visible elevated Command Prompt.
 - Open Windows' authoritative `powercfg /powerthrottling list` output.
 - Remembers the displayed application state between runs.
-- A dedicated Network workspace detects running and installed VoiceMeeter, VBAN, Macro Buttons, Matrix, and Matrix Coconut executables (including 32-bit and 64-bit editions).
-- Creates program-specific VBAN firewall rules on configurable UDP port 6980 by default, with selectable Private, Domain, and Public profiles.
-- Offers a confirmed advanced full-traffic option, ELKA-rule removal, and an elevated authoritative rule list.
+- A general Network workspace searches all discovered applications and filters them by name or executable path.
+- Opens TCP, UDP, or both for single ports, comma-separated port lists, and ranges such as `80,443,5000-5010`.
+- Configures inbound, outbound, or both directions on selectable Private, Domain, and Public profiles.
+- A separate VBAN workspace detects running and installed VoiceMeeter, Macro Buttons, VBAN, Matrix, and Matrix Coconut executables, including x86 and x64 editions.
+- Offers confirmed advanced full-traffic options, targeted ELKA-rule removal, and elevated rule lists.
 - Light, dark, and Windows-system themes.
 - The main app runs normally; elevation is requested only for `powercfg` and firewall actions.
 
@@ -33,14 +35,14 @@ powercfg /powerthrottling list
 
 ## Firewall commands
 
-The Network workspace creates deterministic, removable rules using commands of this form:
+The general Network workspace creates deterministic, removable program rules for the selected protocol, direction, ports, and profiles. For example:
 
 ```text
-netsh advfirewall firewall add rule name="ELKA VBAN - <app> - In" dir=in action=allow program="<full executable path>" protocol=UDP localport=6980 profile=private enable=yes
-netsh advfirewall firewall add rule name="ELKA VBAN - <app> - Out" dir=out action=allow program="<full executable path>" protocol=UDP remoteport=6980 profile=private enable=yes
+netsh advfirewall firewall add rule name="ELKA Network - <app> - TCP - In" dir=in action=allow program="<full executable path>" protocol=TCP localport=80,443,5000-5010 profile=private enable=yes
+netsh advfirewall firewall add rule name="ELKA Network - <app> - TCP - Out" dir=out action=allow program="<full executable path>" protocol=TCP remoteport=80,443,5000-5010 profile=private enable=yes
 ```
 
-The port and firewall profiles are configurable in the UI. VBAN uses UDP port 6980 by default according to the [official VoiceMeeter documentation](https://vb-audio.com/Voicemeeter/VoicemeeterBanana_UserManual.pdf).
+The dedicated VBAN workspace retains its focused defaults. VBAN uses UDP port 6980 by default according to the [official VoiceMeeter documentation](https://vb-audio.com/Voicemeeter/VoicemeeterBanana_UserManual.pdf).
 ## Build from source
 
 Requirements:
@@ -58,7 +60,7 @@ dotnet build ELKA.PowerThrottleControl.sln
 To build the self-contained portable package and installer, install Inno Setup 6 and run:
 
 ```powershell
-.\scripts\Build-Release.ps1 -Version 1.1.0
+.\scripts\Build-Release.ps1 -Version 1.2.0
 ```
 
 Outputs are written under `artifacts/installer`.

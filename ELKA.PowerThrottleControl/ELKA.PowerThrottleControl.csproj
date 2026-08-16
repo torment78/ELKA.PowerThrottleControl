@@ -13,10 +13,10 @@
     <AssemblyTitle>ELKA Power Throttle Control</AssemblyTitle>
     <Company>ElkaSoft</Company>
     <Authors>ElkaSoft</Authors>
-    <Description>Manage Windows per-application power throttling and VB-Audio firewall access through a focused desktop interface.</Description>
-    <Version>1.1.0</Version>
-    <FileVersion>1.1.0.0</FileVersion>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Description>Manage Windows per-application power throttling and general application firewall access and dedicated VB-Audio setup through a focused desktop interface.</Description>
+    <Version>1.2.0</Version>
+    <FileVersion>1.2.0.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
     <RepositoryUrl>https://github.com/torment78/ELKA.PowerThrottleControl</RepositoryUrl>
   </PropertyGroup>
 

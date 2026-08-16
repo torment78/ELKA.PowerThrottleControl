@@ -252,17 +252,36 @@ public partial class MainWindow : Window
 
     private void PowerNav_Click(object sender, RoutedEventArgs e)
     {
+        GeneralNetworkWorkspace.Visibility = Visibility.Collapsed;
         NetworkWorkspace.Visibility = Visibility.Collapsed;
-        PowerNavButton.Background = (System.Windows.Media.Brush)Resources["SelectionBrush"];
-        NetworkNavButton.Background = (System.Windows.Media.Brush)Resources["SurfaceAltBrush"];
+        SetActiveNavigation(PowerNavButton);
         StatusText.Visibility = Visibility.Visible;
     }
 
     private async void NetworkNav_Click(object sender, RoutedEventArgs e)
     {
+        GeneralNetworkWorkspace.Visibility = Visibility.Visible;
+        NetworkWorkspace.Visibility = Visibility.Collapsed;
+        SetActiveNavigation(NetworkNavButton);
+        StatusText.Visibility = Visibility.Collapsed;
+        await GeneralNetworkWorkspace.EnsureLoadedAsync();
+    }
+
+    private async void VbanNav_Click(object sender, RoutedEventArgs e)
+    {
+        GeneralNetworkWorkspace.Visibility = Visibility.Collapsed;
         NetworkWorkspace.Visibility = Visibility.Visible;
-        PowerNavButton.Background = (System.Windows.Media.Brush)Resources["SurfaceAltBrush"];
-        NetworkNavButton.Background = (System.Windows.Media.Brush)Resources["SelectionBrush"];
+        SetActiveNavigation(VbanNavButton);
         StatusText.Visibility = Visibility.Collapsed;
         await NetworkWorkspace.EnsureLoadedAsync();
-    }}
+    }
+
+    private void SetActiveNavigation(Button active)
+    {
+        foreach (var button in new[] { PowerNavButton, NetworkNavButton, VbanNavButton })
+        {
+            button.Background = (System.Windows.Media.Brush)Resources[
+                ReferenceEquals(button, active) ? "SelectionBrush" : "SurfaceAltBrush"];
+        }
+    }
+}
