@@ -1,7 +1,6 @@
 <Window x:Class="ELKA.PowerThrottleControl.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:ELKA.PowerThrottleControl"
         Title="ELKA Power Throttle Control"
         Width="1040" Height="700" MinWidth="820" MinHeight="520"
         WindowStartupLocation="CenterScreen"
@@ -271,15 +270,7 @@
                 </StackPanel>
                 <TextBlock Margin="0,5,0,0" FontSize="14"
                            Foreground="{DynamicResource SecondaryTextBrush}"
-                           Text="Manage application power throttling and VB-Audio network access from one focused workspace."/>
-                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                    <Button x:Name="PowerNavButton" Style="{StaticResource ThemeButtonStyle}" Margin="0,0,8,0"
-                            Background="{DynamicResource SelectionBrush}" Click="PowerNav_Click" Content="⚡  Power"/>
-                    <Button x:Name="NetworkNavButton" Style="{StaticResource ThemeButtonStyle}" Margin="0,0,8,0"
-                            Click="NetworkNav_Click" Content="◎  Network"/>
-                    <Button x:Name="VbanNavButton" Style="{StaticResource ThemeButtonStyle}" Margin="0"
-                            Click="VbanNav_Click" Content="◉  VBAN"/>
-                </StackPanel>
+                           Text="Choose installed applications and control their Windows power throttling setting."/>
             </StackPanel>
             <Button x:Name="ThemeButton" Grid.Column="1" Margin="12,0,0,0" Style="{StaticResource ThemeButtonStyle}"
                     VerticalAlignment="Top" Click="ThemeButton_Click"
@@ -314,7 +305,7 @@
                     Content="Enable power throttling"/>
             <Button x:Name="ListButton" Click="ListPowerThrottling_Click"
                     Background="#FF535D6B" BorderBrush="#FF697585"
-                    Content="List power throttling"/>
+                    Content="Refresh / list power status"/>
         </WrapPanel>
 
         <Grid Grid.Row="2" Margin="0,0,0,10">
@@ -343,9 +334,12 @@
                       SelectionMode="Extended" SelectionUnit="FullRow">
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="{DynamicResource RedRowBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
                         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
                         <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsThrottlingDisabled}" Value="False">
+                                <Setter Property="Background" Value="{DynamicResource RedRowBrush}"/>
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding IsThrottlingDisabled}" Value="True">
                                 <Setter Property="Background" Value="{DynamicResource GreenRowBrush}"/>
                             </DataTrigger>
@@ -384,20 +378,21 @@
                        Text="Select Search all applications to begin."/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Border Width="13" Height="13" Margin="12,0,5,0" CornerRadius="3"
+                        Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"/>
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryTextBrush}" Text="Unknown"/>
+                <Border Width="13" Height="13" Margin="12,0,5,0" CornerRadius="3"
                         Background="{DynamicResource GreenRowBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"/>
                 <TextBlock VerticalAlignment="Center"
-                           Foreground="{DynamicResource SecondaryTextBrush}" Text="Off"/>
+                           Foreground="{DynamicResource SecondaryTextBrush}" Text="Off / never"/>
                 <Border Width="13" Height="13" Margin="12,0,5,0" CornerRadius="3"
                         Background="{DynamicResource RedRowBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"/>
                 <TextBlock VerticalAlignment="Center"
-                           Foreground="{DynamicResource SecondaryTextBrush}" Text="On/default"/>
+                           Foreground="{DynamicResource SecondaryTextBrush}" Text="On / default"/>
             </StackPanel>
         </Grid>
-        <local:GeneralNetworkPanel x:Name="GeneralNetworkWorkspace" Grid.Row="1" Grid.RowSpan="4"
-                                   Visibility="Collapsed" Panel.ZIndex="10"/>
-        <local:NetworkPanel x:Name="NetworkWorkspace" Grid.Row="1" Grid.RowSpan="4"
-                            Visibility="Collapsed" Panel.ZIndex="11"/>
     </Grid>
 </Window>

@@ -6,7 +6,7 @@ namespace ELKA.PowerThrottleControl.Models;
 public sealed class ApplicationEntry : INotifyPropertyChanged
 {
     private bool _isSelected;
-    private bool _isThrottlingDisabled;
+    private bool? _isThrottlingDisabled;
 
     public required string DisplayName { get; init; }
     public required string ExecutablePath { get; init; }
@@ -17,7 +17,7 @@ public sealed class ApplicationEntry : INotifyPropertyChanged
         set => SetField(ref _isSelected, value);
     }
 
-    public bool IsThrottlingDisabled
+    public bool? IsThrottlingDisabled
     {
         get => _isThrottlingDisabled;
         set
@@ -29,17 +29,18 @@ public sealed class ApplicationEntry : INotifyPropertyChanged
         }
     }
 
-    public string StatusText => IsThrottlingDisabled ? "OFF (disabled)" : "ON (enabled/default)";
+    public string StatusText => IsThrottlingDisabled switch
+    {
+        true => "OFF (never throttled)",
+        false => "ON (enabled/default)",
+        null => "Unknown — refresh status"
+    };
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
-
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
         field = value;
         OnPropertyChanged(propertyName);
         return true;
@@ -48,4 +49,3 @@ public sealed class ApplicationEntry : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
-
