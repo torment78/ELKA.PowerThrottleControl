@@ -5,7 +5,7 @@
 #define MyInstallFolderName "ELKA Power Throttle Control"
 
 #ifndef AppVersion
-  #define AppVersion "1.3.0"
+  #define AppVersion "1.3.1"
 #endif
 
 #ifndef SourcePublishDir
@@ -14,6 +14,10 @@
 
 #ifndef InstallerOutputDir
   #error InstallerOutputDir not defined. Pass /DInstallerOutputDir=...
+#endif
+
+#if Ver < EncodeVer(6, 6, 0)
+  #error This installer requires Inno Setup 6.6 or newer.
 #endif
 
 [Setup]
@@ -33,6 +37,7 @@ DefaultDirName={autopf}\{#MyCompanyFolderName}\{#MyInstallFolderName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableDirPage=no
+DisableWelcomePage=no
 UsePreviousAppDir=yes
 UsePreviousTasks=yes
 UsePreviousLanguage=yes
@@ -44,7 +49,8 @@ WizardImageFile=Branding\wizard-left.png
 WizardSmallImageFile=Branding\wizard-small.png
 LicenseFile=..\LICENSE
 
-WizardStyle=modern dark
+WizardStyle=modern dark polar includetitlebar
+WizardSizePercent=120,120
 Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=admin
@@ -64,6 +70,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 Name: "runafter"; Description: "Launch ELKA Power Throttle Control after installation"; GroupDescription: "Post-install:"
 
 [Files]
+Source: "Branding\ElkaSoft.png"; Flags: dontcopy
 Source: "{#SourcePublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
@@ -75,3 +82,38 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch ELKA Power Throttle Cont
 
 [UninstallDelete]
 Type: dirifempty; Name: "{app}"
+
+[Code]
+var
+  WelcomeLogo: TBitmapImage;
+  FinishedLogo: TBitmapImage;
+
+procedure AddBrandLogo(var Logo: TBitmapImage; ParentPage: TNewNotebookPage; LeftEdge: Integer);
+begin
+  Logo := TBitmapImage.Create(WizardForm);
+  Logo.Parent := ParentPage;
+  Logo.SetBounds(LeftEdge, ParentPage.Height - ScaleY(120), ScaleX(108), ScaleY(108));
+  Logo.Stretch := True;
+  Logo.PngImage.LoadFromFile(ExpandConstant('{tmp}\ElkaSoft.png'));
+end;
+
+procedure InitializeWizard;
+begin
+  ExtractTemporaryFile('ElkaSoft.png');
+
+  WizardForm.WelcomeLabel1.Caption := 'ELKA Power' + #13#10 + 'Throttle Control';
+  WizardForm.WelcomeLabel1.Height := ScaleY(62);
+  WizardForm.WelcomeLabel2.Top := WizardForm.WelcomeLabel1.Top + WizardForm.WelcomeLabel1.Height + ScaleY(12);
+  WizardForm.WelcomeLabel2.Caption :=
+    'Manage Windows per-application power throttling from one focused desktop utility.' + #13#10 + #13#10 +
+    'The main application runs normally and only requests administrator approval when Windows power settings are changed.' + #13#10 + #13#10 +
+    'Version {#AppVersion}  |  Windows x64';
+
+  WizardForm.FinishedHeadingLabel.Caption := 'Power control is ready';
+  WizardForm.FinishedLabel.Caption :=
+    'ELKA Power Throttle Control has been installed.' + #13#10 + #13#10 +
+    'Select Finish to close Setup and launch the application.';
+
+  AddBrandLogo(WelcomeLogo, WizardForm.WelcomePage, WizardForm.WelcomeLabel1.Left);
+  AddBrandLogo(FinishedLogo, WizardForm.FinishedPage, WizardForm.FinishedHeadingLabel.Left);
+end;

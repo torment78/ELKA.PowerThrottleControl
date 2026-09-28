@@ -48,7 +48,7 @@ dotnet build ELKA.PowerThrottleControl.sln
 To build the self-contained portable package and installer, install Inno Setup 6 and run:
 
 ```powershell
-.\scripts\Build-Release.ps1 -Version 1.3.0
+.\scripts\Build-Release.ps1 -Version 1.3.1
 ```
 
 Outputs are written under `artifacts/installer`.
