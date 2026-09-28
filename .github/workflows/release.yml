@@ -55,7 +55,9 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $files = Get-ChildItem artifacts\installer -File | ForEach-Object FullName
-          if (gh release view $tag 2>$null) {
+          cmd /c "gh release view $tag >nul 2>nul"
+          $releaseExists = $LASTEXITCODE -eq 0
+          if ($releaseExists) {
             gh release upload $tag @files --clobber
           } else {
             gh release create $tag @files --generate-notes --title "ELKA Power Throttle Control $tag"
