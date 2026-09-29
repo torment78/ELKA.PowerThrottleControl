@@ -162,7 +162,7 @@ public sealed class PowerThrottlingService
 
     private static string CreateOperationDirectory()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "ELKA.PowerThrottleControl", Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(Path.GetTempPath(), "ElkaSoft", "ELKA.PowerThrottleControl", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         return directory;
     }

@@ -1,11 +1,11 @@
 #define MyAppName "ELKA Power Throttle Control"
 #define MyAppPublisher "ElkaSoft"
 #define MyAppExeName "ELKA.PowerThrottleControl.exe"
-#define MyCompanyFolderName "Elka Software"
+#define MyCompanyFolderName "ElkaSoft"
 #define MyInstallFolderName "ELKA Power Throttle Control"
 
 #ifndef AppVersion
-  #define AppVersion "1.3.1"
+  #define AppVersion "1.3.2"
 #endif
 
 #ifndef SourcePublishDir
@@ -33,12 +33,12 @@ VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} Installer
 VersionInfoProductName={#MyAppName}
 
-DefaultDirName={autopf}\{#MyCompanyFolderName}\{#MyInstallFolderName}
+DefaultDirName={code:GetDefaultInstallDir}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableDirPage=no
 DisableWelcomePage=no
-UsePreviousAppDir=yes
+UsePreviousAppDir=no
 UsePreviousTasks=yes
 UsePreviousLanguage=yes
 
@@ -84,9 +84,70 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch ELKA Power Throttle Cont
 Type: dirifempty; Name: "{app}"
 
 [Code]
+const
+  AppUninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{A3D6B7E9-4A78-4C46-91D7-8EF52F76D2F1}_is1';
+
 var
   WelcomeLogo: TBitmapImage;
   FinishedLogo: TBitmapImage;
+
+function HasLegacyDefaultInstall: Boolean;
+var
+  PreviousDir: String;
+begin
+  Result := False;
+  if RegQueryStringValue(HKLM64, AppUninstallKey, 'InstallLocation', PreviousDir) then
+    Result := SameText(RemoveBackslashUnlessRoot(PreviousDir),
+      ExpandConstant('{autopf}\Elka Software\{#MyInstallFolderName}'));
+end;
+
+function GetDefaultInstallDir(Param: String): String;
+var
+  PreviousDir: String;
+begin
+  // Move the former default to ElkaSoft; remember deliberately chosen custom paths.
+  Result := ExpandConstant('{autopf}\{#MyCompanyFolderName}\{#MyInstallFolderName}');
+  if not HasLegacyDefaultInstall then
+    if RegQueryStringValue(HKLM64, AppUninstallKey, 'InstallLocation', PreviousDir) then
+      if PreviousDir <> '' then
+        Result := RemoveBackslashUnlessRoot(PreviousDir);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Uninstaller: String;
+  LegacyDir: String;
+  ExitCode: Integer;
+begin
+  Result := '';
+  if not HasLegacyDefaultInstall then
+    Exit;
+
+  LegacyDir := ExpandConstant('{autopf}\Elka Software\{#MyInstallFolderName}');
+  if SameText(RemoveBackslashUnlessRoot(WizardDirValue), LegacyDir) then
+    Exit;
+
+  // Use this product's registered uninstaller so shortcuts and uninstall records
+  // migrate together. It does not remove the per-user settings or Windows rules.
+  if not RegQueryStringValue(HKLM64, AppUninstallKey, 'UninstallString', Uninstaller) then
+  begin
+    Result := 'The previous installation could not be located. Please uninstall it, then run Setup again. Your settings will be kept.';
+    Exit;
+  end;
+  Uninstaller := RemoveQuotes(Uninstaller);
+  if (not SameText(ExtractFileDir(Uninstaller), LegacyDir)) or (not FileExists(Uninstaller)) then
+  begin
+    Result := 'The previous uninstaller is missing or is outside the expected application folder. Please uninstall the previous version before continuing.';
+    Exit;
+  end;
+
+  Log('Migrating the previous default installation to ' + WizardDirValue);
+  if not Exec(Uninstaller, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', LegacyDir,
+    SW_HIDE, ewWaitUntilTerminated, ExitCode) then
+    Result := 'Could not start the previous uninstaller. Close ELKA Power Throttle Control and try again.'
+  else if ExitCode <> 0 then
+    Result := 'The previous version could not be removed (code ' + IntToStr(ExitCode) + '). Close the application and try again.';
+end;
 
 procedure AddBrandLogo(var Logo: TBitmapImage; ParentPage: TNewNotebookPage; LeftEdge: Integer);
 begin

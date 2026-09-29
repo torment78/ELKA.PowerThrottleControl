@@ -14,9 +14,9 @@
     <Company>ElkaSoft</Company>
     <Authors>ElkaSoft</Authors>
     <Description>Manage Windows per-application power throttling through a focused desktop interface.</Description>
-    <Version>1.3.1</Version>
-    <FileVersion>1.3.1.0</FileVersion>
-    <AssemblyVersion>1.3.1.0</AssemblyVersion>
+    <Version>1.3.2</Version>
+    <FileVersion>1.3.2.0</FileVersion>
+    <AssemblyVersion>1.3.2.0</AssemblyVersion>
     <RepositoryUrl>https://github.com/torment78/ELKA.PowerThrottleControl</RepositoryUrl>
   </PropertyGroup>
 

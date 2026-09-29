@@ -1,23 +1,13 @@
 using Microsoft.Win32;
-using System.IO;
 using System.Windows;
 using System.Windows.Media;
 
 namespace ELKA.PowerThrottleControl.Services;
 
-public enum ThemePreference
-{
-    Light,
-    Dark,
-    System
-}
-
 public static class ThemeService
 {
-    private static readonly string PreferencePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "ELKA.PowerThrottleControl",
-        "theme.txt");
+    private static readonly ThemePreferenceStore PreferenceStore = new(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
 
     private static readonly IReadOnlyDictionary<string, string> DarkColors =
         new Dictionary<string, string>
@@ -59,45 +49,9 @@ public static class ThemeService
             ["ScrollThumbHoverBrush"] = "#738398"
         };
 
-    public static ThemePreference LoadPreference()
-    {
-        try
-        {
-            if (File.Exists(PreferencePath)
-                && Enum.TryParse(File.ReadAllText(PreferencePath).Trim(), ignoreCase: true, out ThemePreference preference))
-            {
-                return preference;
-            }
-        }
-        catch (IOException)
-        {
-            // Fall back to the preferred default if the setting cannot be read.
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Fall back to the preferred default if the setting cannot be read.
-        }
+    public static ThemePreference LoadPreference() => PreferenceStore.LoadPreference();
 
-        return ThemePreference.Dark;
-    }
-
-    public static void SavePreference(ThemePreference preference)
-    {
-        try
-        {
-            var directory = Path.GetDirectoryName(PreferencePath)!;
-            Directory.CreateDirectory(directory);
-            File.WriteAllText(PreferencePath, preference.ToString());
-        }
-        catch (IOException)
-        {
-            // Theme selection still applies for this run.
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Theme selection still applies for this run.
-        }
-    }
+    public static void SavePreference(ThemePreference preference) => PreferenceStore.SavePreference(preference);
 
     public static bool Apply(ResourceDictionary resources, ThemePreference preference)
     {
