@@ -46,6 +46,13 @@ jobs:
         shell: powershell
         run: dotnet run --project tests\SettingsMigrationChecks --configuration Release
 
+      - name: Check updater
+        shell: powershell
+        run: |
+          dotnet run --project tests\UpdateChecks --configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\tests\UpdateChecks\Test-UpdateRunner.ps1
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -269,10 +269,12 @@
                                Foreground="{DynamicResource PrimaryTextBrush}" Text="Power Throttle Control"/>
                 </StackPanel>
                 <TextBlock Margin="0,5,0,0" FontSize="14"
+                           TextWrapping="Wrap"
                            Foreground="{DynamicResource SecondaryTextBrush}"
                            Text="Choose installed applications and control their Windows power throttling setting."/>
             </StackPanel>
-            <Button x:Name="ThemeButton" Grid.Column="1" Margin="12,0,0,0" Style="{StaticResource ThemeButtonStyle}"
+            <StackPanel Grid.Column="1" Margin="12,0,0,0" MinWidth="176">
+            <Button x:Name="ThemeButton" Style="{StaticResource ThemeButtonStyle}"
                     VerticalAlignment="Top" Click="ThemeButton_Click"
                     Background="{DynamicResource SurfaceAltBrush}"
                     Foreground="{DynamicResource PrimaryTextBrush}"
@@ -291,6 +293,11 @@
                     <TextBlock Margin="9,0,0,0" Text="▾"/>
                 </StackPanel>
             </Button>
+            <Button x:Name="UpdateButton" Content="Check for updates" Margin="0,8,0,0"
+                    Style="{StaticResource ThemeButtonStyle}" Click="UpdateButton_Click"/>
+            <TextBlock x:Name="VersionText" Margin="0,6,0,0" FontSize="11" HorizontalAlignment="Right"
+                       Foreground="{DynamicResource SecondaryTextBrush}"/>
+            </StackPanel>
         </Grid>
 
         <WrapPanel Grid.Row="1" Margin="0,0,0,14">
@@ -374,6 +381,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                       TextWrapping="Wrap" Margin="0,0,8,0"
                        Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="Select Search all applications to begin."/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">

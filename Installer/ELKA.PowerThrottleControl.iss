@@ -5,7 +5,7 @@
 #define MyInstallFolderName "ELKA Power Throttle Control"
 
 #ifndef AppVersion
-  #define AppVersion "1.3.2"
+  #define AppVersion "1.3.3"
 #endif
 
 #ifndef SourcePublishDir

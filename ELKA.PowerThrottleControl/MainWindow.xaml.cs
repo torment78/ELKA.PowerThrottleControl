@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Net.Http;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -16,6 +19,12 @@ public partial class MainWindow : Window
     private readonly PowerThrottlingService _powerService = new();
     private readonly ICollectionView _applicationsView;
     private ThemePreference _themePreference;
+    private readonly HttpClient _updateClient = UpdateService.CreateClient();
+    private readonly CancellationTokenSource _lifetime = new();
+    private readonly Version _currentVersion = Assembly.GetExecutingAssembly().GetName().Version!;
+    private readonly bool _portable = !UpdateLauncher.IsInstalledCopy();
+    private AvailableUpdate? _availableUpdate;
+    private bool _updateBusy;
 
     public ObservableCollection<ApplicationEntry> Applications { get; } = [];
 
@@ -29,6 +38,19 @@ public partial class MainWindow : Window
         DataContext = this;
         _applicationsView = CollectionViewSource.GetDefaultView(Applications);
         _applicationsView.Filter = FilterApplication;
+        VersionText.Text = $"v{_currentVersion.ToString(3)} · {(_portable ? "Portable" : "Installed")}";
+        UpdateButton.ToolTip = _portable
+            ? "Check GitHub, then download the portable ZIP beside this copy."
+            : "Check GitHub, then install the update and reopen this application.";
+        var updateResult = Environment.GetCommandLineArgs().FirstOrDefault(arg => arg.StartsWith("--update-result="));
+        StatusText.Text = updateResult switch
+        {
+            "--update-result=success" => $"Updated successfully to v{_currentVersion.ToString(3)}. Your settings have been kept.",
+            "--update-result=cancelled" => "The update was cancelled. You can check for updates and try again whenever you are ready.",
+            "--update-result=restart" => "The update is installed. Windows needs a restart to finish replacing files.",
+            "--update-result=failed" => "The update could not finish. The application has reopened; you can try again.",
+            _ => StatusText.Text
+        };
     }
 
     private void ThemeButton_Click(object sender, RoutedEventArgs e)
@@ -67,8 +89,78 @@ public partial class MainWindow : Window
         if (_themePreference == ThemePreference.System) Dispatcher.Invoke(ApplyTheme);
     }
 
-    private void MainWindow_Closed(object? sender, EventArgs e) =>
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
         SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        _lifetime.Cancel();
+        _updateClient.Dispose();
+    }
+
+    private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_updateBusy) return;
+        _updateBusy = true;
+        SetBusy(true);
+        try
+        {
+            var updater = new UpdateService(_updateClient);
+            if (_availableUpdate is null)
+            {
+                UpdateButton.Content = "Checking…";
+                StatusText.Text = "Checking GitHub for a newer release…";
+                _availableUpdate = await updater.CheckAsync(_currentVersion, _portable, _lifetime.Token);
+                StatusText.Text = _availableUpdate is null
+                    ? $"You are up to date (v{_currentVersion.ToString(3)})."
+                    : _portable
+                        ? $"v{_availableUpdate.Version} is available. Click Download ZIP to save it beside this portable copy."
+                        : $"v{_availableUpdate.Version} is available. Click Install update to download it, install it, and reopen the app.";
+                return;
+            }
+
+            var update = _availableUpdate;
+            var downloadRoot = _portable
+                ? Path.Combine(AppContext.BaseDirectory, "Updates")
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ElkaSoft", "ELKA.PowerThrottleControl", "Updates");
+            var progress = new Progress<int>(percent =>
+            {
+                if (!_updateBusy || _lifetime.IsCancellationRequested) return;
+                UpdateButton.Content = $"Downloading {percent}%";
+                StatusText.Text = $"Downloading v{update.Version}… {percent}%";
+            });
+            UpdateButton.Content = "Downloading…";
+            var download = await updater.DownloadAsync(update, downloadRoot, progress, _lifetime.Token);
+            if (_portable)
+            {
+                UpdateLauncher.ShowDownload(download.Path);
+                StatusText.Text = $"Portable ZIP verified and saved. Extract it to your USB folder when ready: {download.Path}";
+            }
+            else
+            {
+                UpdateButton.Content = "Starting update…";
+                StatusText.Text = "Download verified. Preparing to close, install, and reopen…";
+                await UpdateLauncher.PrepareInstallerAsync(download, _lifetime.Token);
+                Application.Current.Shutdown();
+            }
+        }
+        catch (Exception) when (_lifetime.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            _updateBusy = false;
+            _availableUpdate = null;
+            var message = ex is OperationCanceledException ? "The update check timed out. Please try again." : ex.Message;
+            if (ex is UnauthorizedAccessException && _portable)
+                message = "This portable folder is not writable. Move the app to a writable folder on your USB drive and try again.";
+            StatusText.Text = "The update could not complete. You can try again.";
+            MessageBox.Show(this, message, "Update", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _updateBusy = false;
+            UpdateButton.Content = _availableUpdate is null ? "Check for updates"
+                : _portable ? $"Download ZIP v{_availableUpdate.Version}" : $"Install update v{_availableUpdate.Version}";
+            SetBusy(false);
+        }
+    }
 
     private async void SearchApplications_Click(object sender, RoutedEventArgs e)
     {
@@ -224,6 +316,7 @@ public partial class MainWindow : Window
         DisableButton.IsEnabled = !busy;
         EnableButton.IsEnabled = !busy;
         ListButton.IsEnabled = !busy;
+        UpdateButton.IsEnabled = !busy;
         if (message is not null) StatusText.Text = message;
     }
 
