@@ -46,6 +46,10 @@ jobs:
         shell: powershell
         run: dotnet run --project tests\SettingsMigrationChecks --configuration Release
 
+      - name: Check application input and discovery
+        shell: powershell
+        run: dotnet run --project tests\ApplicationInputChecks --configuration Release
+
       - name: Check updater
         shell: powershell
         run: |

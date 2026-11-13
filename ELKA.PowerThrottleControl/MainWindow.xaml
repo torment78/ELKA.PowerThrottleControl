@@ -253,6 +253,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -300,22 +301,51 @@
             </StackPanel>
         </Grid>
 
-        <WrapPanel Grid.Row="1" Margin="0,0,0,14">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
             <Button x:Name="SearchApplicationsButton" Click="SearchApplications_Click"
+                    Margin="0,0,8,8" ToolTip="Find installed applications and accessible running processes"
                     Background="#FF2D68C4" BorderBrush="#FF4B83D5"
                     Content="Search all applications"/>
             <Button x:Name="DisableButton" Click="DisablePowerThrottling_Click"
+                    Margin="0,0,8,8"
                     Background="#FF267A46" BorderBrush="#FF3F9961"
                     Content="Disable power throttling"/>
             <Button x:Name="EnableButton" Click="EnablePowerThrottling_Click"
+                    Margin="0,0,8,8"
                     Background="#FFB83D48" BorderBrush="#FFD15C66"
                     Content="Enable power throttling"/>
             <Button x:Name="ListButton" Click="ListPowerThrottling_Click"
+                    Margin="0,0,8,8"
                     Background="#FF535D6B" BorderBrush="#FF697585"
                     Content="Refresh / list power status"/>
+            <Button x:Name="AddApplicationButton" Content="Add application…" Margin="0,0,0,8"
+                    Style="{StaticResource ThemeButtonStyle}" Click="AddApplicationButton_Click"/>
         </WrapPanel>
 
-        <Grid Grid.Row="2" Margin="0,0,0,10">
+        <Border x:Name="AddApplicationPanel" Grid.Row="2" Visibility="Collapsed" Padding="12" Margin="0,0,0,14"
+                Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+                <TextBlock Text="Missing a game or app? Paste its EXE path or browse to it. Added paths are remembered."
+                           Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="ExecutablePathBox" KeyDown="ExecutablePathBox_KeyDown"
+                             AutomationProperties.Name="Application EXE path"
+                             ToolTip="Full path to the game or application .exe; quoted paths are also accepted"/>
+                    <Button x:Name="BrowseExecutableButton" Grid.Column="1" Content="Browse…" Margin="8,0,0,0"
+                            Style="{StaticResource ThemeButtonStyle}" Click="BrowseExecutable_Click"/>
+                    <Button x:Name="AddExecutableButton" Grid.Column="2" Content="Add to list" Margin="8,0,0,0"
+                            Style="{StaticResource ThemeButtonStyle}" Click="AddExecutable_Click"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -328,7 +358,7 @@
                        Foreground="{DynamicResource SecondaryTextBrush}"/>
         </Grid>
 
-        <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}"
+        <Border Grid.Row="4" Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6">
             <DataGrid x:Name="ApplicationsGrid" ItemsSource="{Binding Applications}"
                       Background="{DynamicResource SurfaceBrush}"
@@ -375,7 +405,7 @@
             </DataGrid>
         </Border>
 
-        <Grid Grid.Row="4" Margin="0,12,0,0">
+        <Grid Grid.Row="5" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

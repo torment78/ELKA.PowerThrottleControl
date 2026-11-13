@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using Microsoft.Win32;
 using ELKA.PowerThrottleControl.Models;
 using ELKA.PowerThrottleControl.Services;
@@ -25,6 +26,8 @@ public partial class MainWindow : Window
     private readonly bool _portable = !UpdateLauncher.IsInstalledCopy();
     private AvailableUpdate? _availableUpdate;
     private bool _updateBusy;
+    private readonly ManualApplicationStore _manualStore = new(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+    private readonly Dictionary<string, ApplicationEntry> _manualApplications = new(StringComparer.OrdinalIgnoreCase);
 
     public ObservableCollection<ApplicationEntry> Applications { get; } = [];
 
@@ -38,6 +41,8 @@ public partial class MainWindow : Window
         DataContext = this;
         _applicationsView = CollectionViewSource.GetDefaultView(Applications);
         _applicationsView.Filter = FilterApplication;
+        _applicationsView.SortDescriptions.Add(new SortDescription(nameof(ApplicationEntry.DisplayName), ListSortDirection.Ascending));
+        _applicationsView.SortDescriptions.Add(new SortDescription(nameof(ApplicationEntry.ExecutablePath), ListSortDirection.Ascending));
         VersionText.Text = $"v{_currentVersion.ToString(3)} · {(_portable ? "Portable" : "Installed")}";
         UpdateButton.ToolTip = _portable
             ? "Check GitHub, then download the portable ZIP beside this copy."
@@ -51,6 +56,83 @@ public partial class MainWindow : Window
             "--update-result=failed" => "The update could not finish. The application has reopened; you can try again.",
             _ => StatusText.Text
         };
+        try
+        {
+            foreach (var path in _manualStore.LoadPaths())
+            {
+                var app = ExecutableApplication.TryCreate(path);
+                if (app is null) continue;
+                _manualApplications[app.ExecutablePath] = app;
+                Applications.Add(app);
+            }
+            if (Applications.Count > 0 && updateResult is null)
+                StatusText.Text = "Your added applications are loaded. Refresh power status to check their Windows settings.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Could not load saved applications: {ex.Message}";
+        }
+        UpdateCount();
+    }
+
+    private void AddApplicationButton_Click(object sender, RoutedEventArgs e)
+    {
+        AddApplicationPanel.Visibility = AddApplicationPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        if (AddApplicationPanel.Visibility == Visibility.Visible) ExecutablePathBox.Focus();
+    }
+
+    private void BrowseExecutable_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new OpenFileDialog
+        {
+            Title = "Choose the game or application's executable",
+            Filter = "Applications (*.exe)|*.exe",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (picker.ShowDialog(this) == true)
+        {
+            ExecutablePathBox.Text = picker.FileName;
+            AddExecutableButton.Focus();
+        }
+    }
+
+    private void ExecutablePathBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && AddExecutableButton.IsEnabled)
+        {
+            e.Handled = true;
+            AddExecutable_Click(sender, e);
+        }
+    }
+
+    private void AddExecutable_Click(object sender, RoutedEventArgs e)
+    {
+        ApplicationEntry app;
+        try { app = ExecutableApplication.Create(ExecutablePathBox.Text); }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            MessageBox.Show(this, ex.Message, "Choose an application EXE", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var existing = Applications.FirstOrDefault(item => item.ExecutablePath.Equals(app.ExecutablePath, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null) app = existing;
+        else Applications.Add(app);
+        app.IsSelected = true;
+        _manualApplications[app.ExecutablePath] = app;
+        FilterBox.Clear();
+        _applicationsView.Refresh();
+        UpdateCount();
+        ApplicationsGrid.SelectedItem = app;
+        ApplicationsGrid.ScrollIntoView(app);
+        StatusText.Text = $"{app.DisplayName} is selected. Click Disable power throttling to set it to OFF / never.";
+        try { _manualStore.Remember(app.ExecutablePath); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText.Text = "Application added for this session, but its path could not be saved.";
+            MessageBox.Show(this, ex.Message, "Could not remember application", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void ThemeButton_Click(object sender, RoutedEventArgs e)
@@ -164,27 +246,43 @@ public partial class MainWindow : Window
 
     private async void SearchApplications_Click(object sender, RoutedEventArgs e)
     {
-        SetBusy(true, "Searching installed applications…");
+        SetBusy(true, "Searching installed and running applications…");
         try
         {
             var discovered = await Task.Run(_discoveryService.Discover);
+            // Re-read remembered paths so a previously disconnected game drive can reappear.
+            string? savedPathsError = null;
+            try
+            {
+                foreach (var path in _manualStore.LoadPaths())
+                {
+                    var app = ExecutableApplication.TryCreate(path);
+                    if (app is not null) _manualApplications.TryAdd(app.ExecutablePath, app);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { savedPathsError = ex.Message; }
+            var selectedPaths = Applications.Where(app => app.IsSelected).Select(app => app.ExecutablePath).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var merged = ExecutableApplication.Merge(discovered, _manualApplications.Values.Where(app => File.Exists(app.ExecutablePath)));
             Applications.Clear();
-            foreach (var app in discovered)
+            foreach (var app in merged)
             {
                 app.IsThrottlingDisabled = null;
+                app.IsSelected = selectedPaths.Contains(app.ExecutablePath);
                 Applications.Add(app);
             }
             _applicationsView.Refresh();
             UpdateCount();
 
-            if (discovered.Count == 0)
+            if (merged.Count == 0)
             {
-                StatusText.Text = "No installed applications with usable executable paths were found.";
+                StatusText.Text = "No applications were found. Use Add application to choose an EXE directly.";
+                if (savedPathsError is not null) StatusText.Text += $" Saved applications: {savedPathsError}";
                 return;
             }
 
-            StatusText.Text = $"Found {discovered.Count:N0} applications. Waiting for Windows to confirm their real power status…";
+            StatusText.Text = $"Found {merged.Count:N0} applications. Waiting for Windows to confirm their real power status…";
             await RefreshPowerStatusAsync(keepWindowOpen: false);
+            if (savedPathsError is not null) StatusText.Text += $" Saved applications: {savedPathsError}";
         }
         catch (Exception ex)
         {
@@ -249,7 +347,7 @@ public partial class MainWindow : Window
     {
         if (Applications.Count == 0)
         {
-            MessageBox.Show(this, "Search all applications first, then refresh the Windows status.",
+            MessageBox.Show(this, "Search all applications or add an EXE first, then refresh the Windows status.",
                 "No application list", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -317,6 +415,8 @@ public partial class MainWindow : Window
         EnableButton.IsEnabled = !busy;
         ListButton.IsEnabled = !busy;
         UpdateButton.IsEnabled = !busy;
+        AddApplicationButton.IsEnabled = !busy;
+        AddApplicationPanel.IsEnabled = !busy;
         if (message is not null) StatusText.Text = message;
     }
 

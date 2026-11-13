@@ -29,6 +29,12 @@ public sealed class ApplicationDiscoveryService
         ReadAppPaths(RegistryHive.CurrentUser, RegistryView.Registry32, applications);
         ReadStartMenuShortcuts(applications);
 
+        foreach (var app in RunningApplicationDiscovery.Discover())
+        {
+            // Keep an installed application's friendly name when the same path is running.
+            applications.TryAdd(app.ExecutablePath, app.DisplayName);
+        }
+
         return applications
             .Select(pair => new ApplicationEntry { ExecutablePath = pair.Key, DisplayName = pair.Value })
             .OrderBy(app => app.DisplayName, StringComparer.CurrentCultureIgnoreCase)

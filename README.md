@@ -15,7 +15,8 @@ Upgrading from the old `Elka Software` default folder relocates the application 
 
 ## Features
 
-- Discovers executable-backed applications from machine-wide and per-user registry entries, App Paths, and Start Menu shortcuts.
+- Discovers executable-backed applications from machine-wide and per-user registry entries, App Paths, Start Menu shortcuts, and accessible running processes.
+- Add missing games or applications by browsing to an EXE or pasting its full path. Added paths are remembered between runs and kept when searching again.
 - Select one or many applications.
 - Disable or enable power throttling through a visible elevated Command Prompt.
 - Reads Windows' authoritative `powercfg /powerthrottling list` output and synchronizes every row with the real system state.
@@ -27,6 +28,12 @@ Upgrading from the old `Elka Software` default folder relocates the application 
 - The main app runs normally; only `powercfg` actions, status queries, and the update installer request elevation.
 
 Network and VBAN firewall management were removed in version 1.3.0 so the application is once again dedicated solely to power throttling.
+
+## Adding a missing game
+
+If a game such as Call of Duty is missing from the search results, choose **Add application…**, then **Browse…** to its actual game EXE (or paste the full path) and choose **Add to list**. The row is checked automatically; choose **Disable power throttling** to set it to never throttle. Adding a path alone does not change Windows settings or launch the executable.
+
+Search now includes running applications. Some protected processes still do not expose their executable path to an unelevated app; manual selection works independently of process discovery. An added row starts with unknown status until Windows confirms it. Duplicate paths are merged, and manually added games remain in the list after another search or restart. Temporarily missing drives are retained in the saved list and checked again on the next search.
 
 ## Commands used
 
@@ -53,12 +60,14 @@ dotnet build ELKA.PowerThrottleControl.sln
 To build the self-contained portable package and installer, install Inno Setup 6.6 or newer and run:
 
 ```powershell
-.\scripts\Build-Release.ps1 -Version 1.3.3
+.\scripts\Build-Release.ps1 -Version 1.3.4
 ```
 
 Outputs are written under `artifacts/installer`.
 
 Run the isolated settings migration checks with `dotnet run --project tests/SettingsMigrationChecks`. These checks do not touch your real saved settings.
+
+Run manual-path, saved-list, running-process, and command-quoting checks with `dotnet run --project tests/ApplicationInputChecks`. The command checks substitute a harmless argument recorder for `powercfg`; they never change Windows power settings or launch a selected game.
 
 Updater checks: `dotnet run --project tests/UpdateChecks` and `powershell -NoProfile -File tests/UpdateChecks/Test-UpdateRunner.ps1`. Installer launches are mocked; these checks do not install or elevate anything. For a read-only check against the public GitHub release, append `-- --live` to the updater checks command; `-- --live --download` also downloads and verifies both packages in temporary folders without executing them.
 
@@ -73,6 +82,8 @@ The theme preference is stored per user under:
 On first launch, an existing theme preference from `%LOCALAPPDATA%\ELKA.PowerThrottleControl\theme.txt` is copied to the new location. The old file is kept as a backup and an existing new preference is never overwritten during migration.
 
 Future saved settings belong in this same per-app folder under `ElkaSoft`, never under Program Files. Power throttling rules remain managed by Windows. Temporary command files use `%TEMP%\ElkaSoft\ELKA.PowerThrottleControl` and are cleaned up after each operation.
+
+Manually added executable paths are stored alongside the theme in `applications.json`. This file contains paths only, not cached power-throttling status. A damaged or unreadable saved list is left unchanged, and a path can still be added for the current session if saving fails.
 
 ## Updating
 

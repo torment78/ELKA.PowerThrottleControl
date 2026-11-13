@@ -103,7 +103,7 @@ public sealed class PowerThrottlingService
         return builder.ToString();
     }
 
-    private static string BuildCommandScript(IReadOnlyList<ApplicationEntry> applications, bool disable, string resultPath)
+    internal static string BuildCommandScript(IReadOnlyList<ApplicationEntry> applications, bool disable, string resultPath)
     {
         var operation = disable ? "disable" : "enable";
         var builder = new StringBuilder();
@@ -181,9 +181,11 @@ public sealed class PowerThrottlingService
     }
 
     private static string EscapeBatchValue(string value) =>
-        value.Replace("^", "^^", StringComparison.Ordinal).Replace("%", "%%", StringComparison.Ordinal);
+        // These values are inside quotes: carets are literal, but batch-file percent signs still expand.
+        value.Replace("%", "%%", StringComparison.Ordinal);
 
-    private static string EscapeEchoValue(string value) => EscapeBatchValue(value)
+    private static string EscapeEchoValue(string value) => EscapeBatchValue(value.Replace("\"", "").Replace('\r', ' ').Replace('\n', ' '))
+        .Replace("^", "^^", StringComparison.Ordinal)
         .Replace("&", "^&", StringComparison.Ordinal).Replace("|", "^|", StringComparison.Ordinal)
         .Replace("<", "^<", StringComparison.Ordinal).Replace(">", "^>", StringComparison.Ordinal)
         .Replace("(", "^(", StringComparison.Ordinal).Replace(")", "^)", StringComparison.Ordinal);

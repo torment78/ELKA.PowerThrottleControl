@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../ELKA.PowerThrottleControl/Models/ApplicationEntry.cs" Link="ApplicationEntry.cs" />
+    <Compile Include="../../ELKA.PowerThrottleControl/Services/ExecutableApplication.cs" Link="ExecutableApplication.cs" />
+    <Compile Include="../../ELKA.PowerThrottleControl/Services/ManualApplicationStore.cs" Link="ManualApplicationStore.cs" />
+    <Compile Include="../../ELKA.PowerThrottleControl/Services/RunningApplicationDiscovery.cs" Link="RunningApplicationDiscovery.cs" />
+    <Compile Include="../../ELKA.PowerThrottleControl/Services/PowerThrottlingService.cs" Link="PowerThrottlingService.cs" />
+  </ItemGroup>
+</Project>
